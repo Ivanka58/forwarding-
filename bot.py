@@ -1,6 +1,3 @@
-Вот обновлённый код с добавлением команды /stop и исправлением обработки альбомов фотографий:
-
-Файл bot.py:
 import os
 from dotenv import load_dotenv
 import telebot
