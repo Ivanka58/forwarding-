@@ -1,3 +1,6 @@
+Вот обновлённый код с добавлением команды /stop и исправлением обработки альбомов фотографий:
+
+Файл bot.py:
 import os
 from dotenv import load_dotenv
 import telebot
@@ -18,6 +21,12 @@ announcement = None
 def send_welcome(message):
     bot.reply_to(message, 'Введи пароль')
 
+@bot.message_handler(commands=['stop'])
+def stop_announcement(message):
+    global announcement
+    announcement = None
+    bot.reply_to(message, 'Объявление отменено!\nОтправь новое сообщение которое я буду пересылать')
+
 @bot.message_handler(func=lambda m: True)
 def handle_message(message):
     if not hasattr(bot, 'authorized'):
@@ -32,6 +41,10 @@ def handle_message(message):
             announcement = message.text
             bot.reply_to(message, 'Спасибо! Это объявление будет публиковаться в канале с перерывом в 7 сообщений, если возникнут проблемы, пиши @Ivanka58')
         elif message.content_type == 'photo':
+            global announcement
+            announcement = message
+            bot.reply_to(message, 'Спасибо! Это объявление будет публиковаться в канале с перерывом в 7 сообщений, если возникнут проблемы, пиши @Ivanka58')
+        elif message.content_type == 'media_group':
             global announcement
             announcement = message
             bot.reply_to(message, 'Спасибо! Это объявление будет публиковаться в канале с перерывом в 7 сообщений, если возникнут проблемы, пиши @Ivanka58')
@@ -54,6 +67,9 @@ def handle_channel_message(message):
                         bot.send_message(CHANNEL_ID, announcement.text)
                     elif announcement.content_type == 'photo':
                         bot.send_photo(CHANNEL_ID, announcement.photo[-1].file_id, caption=announcement.caption)
+                    elif announcement.content_type == 'media_group':
+                        for photo in announcement.media_group:
+                            bot.send_photo(CHANNEL_ID, photo.file_id, caption=announcement.caption)
                     bot.message_count = 0
             elif message.content_type == 'photo':
                 # Считаем сообщения в канале
@@ -67,6 +83,9 @@ def handle_channel_message(message):
                         bot.send_message(CHANNEL_ID, announcement.text)
                     elif announcement.content_type == 'photo':
                         bot.send_photo(CHANNEL_ID, announcement.photo[-1].file_id, caption=announcement.caption)
+                    elif announcement.content_type == 'media_group':
+                        for photo in announcement.media_group:
+                            bot.send_photo(CHANNEL_ID, photo.file_id, caption=announcement.caption)
                     bot.message_count = 0
 
 if __name__ == "__main__":
